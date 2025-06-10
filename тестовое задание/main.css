@@ -1,0 +1,36 @@
+* {
+  box-sizing: border-box;
+}
+body {
+    margin: auto;
+}
+header {
+    height: 50px;
+    border-bottom: 2px solid grey;
+    
+}
+main {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.container {
+    display: flex;
+    justify-content: space-around;
+    height: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+}
+.table {
+    height: 50px !important;
+    overflow-y: scroll;
+}
+.container_element {
+    width: 45%;
+    height: 100%; 
+}
+.container_element_menu {
+    display: flex;
+    justify-content: space-between;
+}
