@@ -1,104 +1,113 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="main.css">
-    <title>Финансы</title>
-  </head>
-  <body>
-      <header>
-    
-     </header>
-     <main>
-        <section class="container">
-        <div class="container_element">
-            <div class="container_element_menu">
-                <h3>Доходы</h3>
-                <div>
-                    <button class="addButton">Добавить</button>
-                    <button class="deleteButton">Удалить</button>
-                </div>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Финансовый трекер</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <section class="container">
+        <h1>Финансовый трекер</h1>
+        
+        <div class="controls">
+            <div class="buttons">
+                <button id="add-income">+ Доход</button>
+                <button id="add-expense">+ Расход</button>
             </div>
-            <table class="table table-striped">
-                <thead class="thead-dark">
-                    <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Категория</th>
-                    <th scope="col">Сумма</th>
-                    <th scope="col">Дата</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                    <th scope="row">1</th>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                    </tr>
-                    <tr>
-                    <th scope="row">2</th>
-                    <td>Jacob</td>
-                    <td>Thornton</td>
-                    <td>@fat</td>
-                    </tr>
-                    <tr>
-                    <th scope="row">3</th>
-                    <td>Larry</td>
-                    <td>the Bird</td>
-                    <td>@twitter</td>
-                    </tr>
-                    <tr>
-                    <th scope="row">4</th>
-                    <td>Larry</td>
-                    <td>the Bird</td>
-                    <td>@twitter</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="date-filter">
+                <label for="start-date">Период:</label>
+                <input type="date" id="start-date">
+                <span>—</span>
+                <input type="date" id="end-date">
+                <button id="apply-filter">Применить</button>
+                <button id="reset-filter">Сбросить</button>
+            </div>
         </div>
-        <div class="container_element">
-            <table class="table table-striped">
-                <thead class="thead-dark">
-                    <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Категория</th>
-                    <th scope="col">Сумма</th>
-                    <th scope="col">Дата</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                    <th scope="row">1</th>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                    </tr>
-                    <tr>
-                    <th scope="row">2</th>
-                    <td>Jacob</td>
-                    <td>Thornton</td>
-                    <td>@fat</td>
-                    </tr>
-                    <tr>
-                    <th scope="row">3</th>
-                    <td>Larry</td>
-                    <td>the Bird</td>
-                    <td>@twitter</td>
-                    </tr>
-                </tbody>
-            </table>
+        
+        <div class="summary">
+            <div class="summary-card income">
+                <h3>Доходы</h3>
+                <p id="total-income">0 ₽</p>
+            </div>
+            <div class="summary-card expense">
+                <h3>Расходы</h3>
+                <p id="total-expense">0 ₽</p>
+            </div>
+            <div class="summary-card balance">
+                <h3>Баланс</h3>
+                <p id="balance">0 ₽</p>
+            </div>
         </div>
-        </section>
-     </main>
+        
+        <div class="transactions">
+            <div class="tabs">
+                <button class="tab-button active" data-tab="income">Доходы</button>
+                <button class="tab-button" data-tab="expense">Расходы</button>
+            </div>
+            
+            <div class="tab-content active" id="income-tab">
+                <table id="income-table">
+                    <thead>
+                        <tr>
+                            <th>Категория</th>
+                            <th>Сумма</th>
+                            <th>Дата</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <div class="tab-content" id="expense-tab">
+                <table id="expense-table">
+                    <thead>
+                        <tr>
+                            <th>Категория</th>
+                            <th>Сумма</th>
+                            <th>Дата</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
     
-    
-    
+    <!-- Модальное окно -->
+    <dialog id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title">Добавить операцию</h2>
+            <form id="transaction-form">
+                <input type="hidden" id="edit-id">
+                <input type="hidden" id="edit-type">
+                
+                <div class="form-group">
+                    <label for="category">Категория</label>
+                    <input type="text" id="category" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">Сумма (₽)</label>
+                    <input type="number" id="amount" min="0" step="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date">Дата</label>
+                    <input type="date" id="date" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="save-btn">Сохранить</button>
+                    <button type="button" class="cancel-btn">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
 
-
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-  </body>
+    <script src="index.js"></script>
+</body>
 </html>
