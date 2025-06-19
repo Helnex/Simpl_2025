@@ -1,11 +1,13 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Инициализация базы данных
   const DB_NAME = "FinanceTrackerDB";
   const DB_VERSION = 1;
   const INCOME_STORE = "income";
   const EXPENSE_STORE = "expense";
 
+  let incomeChart;
+  let expenseChart;
   let db;
+
   const request = indexedDB.open(DB_NAME, DB_VERSION);
 
   request.onupgradeneeded = function (event) {
@@ -36,33 +38,18 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   function initApp() {
-    // Элементы интерфейса
+    incomeChart = echarts.init(document.getElementById("income-chart"));
+    expenseChart = echarts.init(document.getElementById("expense-chart"));
+
     const addIncomeBtn = document.getElementById("add-income");
     const addExpenseBtn = document.getElementById("add-expense");
     const applyFilterBtn = document.getElementById("apply-filter");
-    const resetFilterBtn = document.getElementById("reset-filter");
-    const modal = document.getElementById("modal");
     const closeModalBtn = document.querySelector(".close");
     const cancelBtn = document.querySelector(".cancel-btn");
     const transactionForm = document.getElementById("transaction-form");
-    const tabButtons = document.querySelectorAll(".tab-button");
 
-    // Установка текущей даты по умолчанию
-    const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastDayOfMonth = new Date(
-      today.getFullYear(),
-      today.getMonth() + 1,
-      0
-    );
-
-    document.getElementById("start-date").valueAsDate = firstDayOfMonth;
-    document.getElementById("end-date").valueAsDate = lastDayOfMonth;
-
-    // Загрузка данных
     loadTransactions();
 
-    // Обработчики событий
     addIncomeBtn.addEventListener("click", () =>
       openModal(INCOME_STORE, "Добавить доход")
     );
@@ -71,227 +58,227 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
     applyFilterBtn.addEventListener("click", loadTransactions);
-    resetFilterBtn.addEventListener("click", resetFilters);
 
     closeModalBtn.addEventListener("click", closeModal);
     cancelBtn.addEventListener("click", closeModal);
 
     transactionForm.addEventListener("submit", handleFormSubmit);
 
-    tabButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        tabButtons.forEach((btn) => btn.classList.remove("active"));
-        button.classList.add("active");
-
-        document.querySelectorAll(".tab-content").forEach((content) => {
-          content.classList.remove("active");
-        });
-
-        document
-          .getElementById(`${button.dataset.tab}-tab`)
-          .classList.add("active");
-      });
+    window.addEventListener("resize", function () {
+      incomeChart.resize();
+      expenseChart.resize();
     });
+  }
 
-    // Функции
+  function openModal(type, title, transaction = null) {
+    document.getElementById("modal-title").textContent = title;
+    document.getElementById("edit-type").value = type;
 
-    function openModal(type, title, transaction = null) {
-      document.getElementById("modal-title").textContent = title;
-      document.getElementById("edit-type").value = type;
-
-      if (transaction) {
-        document.getElementById("edit-id").value = transaction.id;
-        document.getElementById("category").value = transaction.category;
-        document.getElementById("amount").value = transaction.amount;
-        document.getElementById("date").value = transaction.date;
-      } else {
-        document.getElementById("edit-id").value = "";
-        document.getElementById("category").value = "";
-        document.getElementById("amount").value = "";
-        document.getElementById("date").valueAsDate = new Date();
-      }
-
-      modal.style.display = "flex";
+    if (transaction) {
+      document.getElementById("edit-id").value = transaction.id;
+      document.getElementById("category").value = transaction.category;
+      document.getElementById("amount").value = transaction.amount;
+      document.getElementById("date").value = transaction.date;
+    } else {
+      document.getElementById("edit-id").value = "";
+      document.getElementById("category").value = "";
+      document.getElementById("amount").value = "";
+      document.getElementById("date").valueAsDate = new Date();
     }
 
-    function closeModal() {
-      modal.style.display = "none";
+    modal.style.display = "flex";
+  }
+
+  function closeModal() {
+    modal.style.display = "none";
+  }
+
+  function handleFormSubmit(e) {
+    e.preventDefault();
+
+    const transaction = {
+      category: document.getElementById("category").value,
+      amount: parseFloat(document.getElementById("amount").value),
+      date: document.getElementById("date").value,
+    };
+
+    const id = document.getElementById("edit-id").value;
+    const type = document.getElementById("edit-type").value;
+
+    if (id) {
+      transaction.id = parseInt(id);
+      updateTransaction(type, transaction);
+    } else {
+      addTransaction(type, transaction);
     }
 
-    function handleFormSubmit(e) {
-      e.preventDefault();
+    closeModal();
+  }
 
-      const transaction = {
-        category: document.getElementById("category").value,
-        amount: parseFloat(document.getElementById("amount").value),
-        date: document.getElementById("date").value,
-      };
+  function loadTransactions() {
+    loadStoreTransactions(INCOME_STORE, "income-table");
+    loadStoreTransactions(EXPENSE_STORE, "expense-table");
+    updateCharts();
+  }
 
-      const id = document.getElementById("edit-id").value;
-      const type = document.getElementById("edit-type").value;
+  function loadStoreTransactions(storeName, tableId) {
+    const transaction = db.transaction(storeName, "readonly");
+    const store = transaction.objectStore(storeName);
+    const request = store.getAll();
 
-      if (id) {
-        transaction.id = parseInt(id);
-        updateTransaction(type, transaction);
-      } else {
-        addTransaction(type, transaction);
-      }
+    request.onsuccess = function () {
+      const transactions = filterTransactionsByDate(request.result);
+      transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+      renderTable(tableId, transactions, storeName);
+    };
+  }
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ru-RU");
+  }
+  function renderTable(tableId, transactions, storeName) {
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    tbody.innerHTML = "";
 
-      closeModal();
-    }
+    transactions.forEach((transaction) => {
+      const row = document.createElement("tr");
 
-    function loadTransactions() {
-      const startDate = document.getElementById("start-date").value;
-      const endDate = document.getElementById("end-date").value;
+      row.innerHTML = `
+        <td>${transaction.category}</td>
+        <td>${transaction.amount.toFixed(2)} ₽</td>
+        <td>${formatDate(transaction.date)}</td>
+        <td>
+          <button class="action-btn edit-btn" data-id="${
+            transaction.id
+          }">Изменить</button>
+          <button class="action-btn delete-btn" data-id="${
+            transaction.id
+          }">Удалить</button>
+        </td>
+      `;
 
-      loadStoreTransactions(INCOME_STORE, "income-table", startDate, endDate);
-      loadStoreTransactions(EXPENSE_STORE, "expense-table", startDate, endDate);
-      updateSummary();
-    }
+      row.querySelector(".edit-btn").addEventListener("click", () => {
+        openModal(
+          storeName,
+          storeName === INCOME_STORE ? "Изменить доход" : "Изменить расход",
+          transaction
+        );
+      });
 
-    function loadStoreTransactions(storeName, tableId, startDate, endDate) {
-      const transaction = db.transaction(storeName, "readonly");
-      const store = transaction.objectStore(storeName);
-      const request = store.getAll();
-
-      request.onsuccess = function () {
-        let transactions = request.result;
-
-        if (startDate && endDate) {
-          transactions = transactions.filter((t) => {
-            const transDate = new Date(t.date);
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            return transDate >= start && transDate <= end;
-          });
+      row.querySelector(".delete-btn").addEventListener("click", () => {
+        if (confirm("Вы уверены, что хотите удалить эту запись?")) {
+          deleteTransaction(storeName, transaction.id);
         }
+      });
 
-        transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-        renderTable(tableId, transactions, storeName);
+      tbody.appendChild(row);
+    });
+  }
+
+  function updateCharts() {
+    updateChart(INCOME_STORE, incomeChart, "Доходы по категориям");
+    updateChart(EXPENSE_STORE, expenseChart, "Расходы по категориям");
+  }
+
+  function updateChart(storeName, chartInstance, title) {
+    const transaction = db.transaction(storeName, "readonly");
+    const store = transaction.objectStore(storeName);
+    const request = store.getAll();
+
+    request.onsuccess = function () {
+      const transactions = filterTransactionsByDate(request.result);
+      const categories = {};
+
+      transactions.forEach((item) => {
+        if (!categories[item.category]) {
+          categories[item.category] = 0;
+        }
+        categories[item.category] += item.amount;
+      });
+
+      const option = {
+        title: {
+          text: title,
+          left: "center",
+        },
+        tooltip: {
+          trigger: "item",
+          formatter: "{a} <br/>{b}: {c} ₽ ({d}%)",
+        },
+        legend: {
+          orient: "vertical",
+          left: "left",
+          data: Object.keys(categories),
+        },
+        series: [
+          {
+            name: title,
+            type: "pie",
+            radius: "50%",
+            data: Object.entries(categories).map(([name, value]) => ({
+              name,
+              value,
+            })),
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: "rgba(0, 0, 0, 0.5)",
+              },
+            },
+            label: {
+              formatter: "{b}: {c} ₽",
+            },
+          },
+        ],
       };
-    }
 
-    function renderTable(tableId, transactions, storeName) {
-      const tbody = document.querySelector(`#${tableId} tbody`);
-      tbody.innerHTML = "";
+      chartInstance.setOption(option);
+    };
+  }
 
-      transactions.forEach((transaction) => {
-        const row = document.createElement("tr");
+  function filterTransactionsByDate(transactions) {
+    const startDate = document.getElementById("start-date").value;
+    const endDate = document.getElementById("end-date").value;
 
-        row.innerHTML = `
-                    <td>${transaction.category}</td>
-                    <td>${transaction.amount.toFixed(2)} ₽</td>
-                    <td>${formatDate(transaction.date)}</td>
-                    <td>
-                        <button class="action-btn edit-btn" data-id="${
-                          transaction.id
-                        }">Изменить</button>
-                        <button class="action-btn delete-btn" data-id="${
-                          transaction.id
-                        }">Удалить</button>
-                    </td>
-                `;
-
-        row.querySelector(".edit-btn").addEventListener("click", () => {
-          openModal(
-            storeName,
-            storeName === INCOME_STORE ? "Изменить доход" : "Изменить расход",
-            transaction
-          );
-        });
-
-        row.querySelector(".delete-btn").addEventListener("click", () => {
-          if (confirm("Вы уверены, что хотите удалить эту запись?")) {
-            deleteTransaction(storeName, transaction.id);
-          }
-        });
-
-        tbody.appendChild(row);
+    if (startDate && endDate) {
+      return transactions.filter((t) => {
+        const transDate = new Date(t.date);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        return transDate >= start && transDate <= end;
       });
     }
+    return transactions;
+  }
 
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("ru-RU");
-    }
+  function addTransaction(storeName, transaction) {
+    const tx = db.transaction(storeName, "readwrite");
+    const store = tx.objectStore(storeName);
+    const request = store.add(transaction);
 
-    function addTransaction(storeName, transaction) {
-      const tx = db.transaction(storeName, "readwrite");
-      const store = tx.objectStore(storeName);
-      const request = store.add(transaction);
-
-      request.onsuccess = function () {
-        loadTransactions();
-      };
-    }
-
-    function updateTransaction(storeName, transaction) {
-      const tx = db.transaction(storeName, "readwrite");
-      const store = tx.objectStore(storeName);
-      const request = store.put(transaction);
-
-      request.onsuccess = function () {
-        loadTransactions();
-      };
-    }
-
-    function deleteTransaction(storeName, id) {
-      const tx = db.transaction(storeName, "readwrite");
-      const store = tx.objectStore(storeName);
-      const request = store.delete(id);
-
-      request.onsuccess = function () {
-        loadTransactions();
-      };
-    }
-
-    function updateSummary() {
-      calculateTotal(INCOME_STORE, "total-income");
-      calculateTotal(EXPENSE_STORE, "total-expense");
-
-      // Обновление баланса
-      const income =
-        parseFloat(document.getElementById("total-income").textContent) || 0;
-      const expense =
-        parseFloat(document.getElementById("total-expense").textContent) || 0;
-      document.getElementById("balance").textContent =
-        (income - expense).toFixed(2) + " ₽";
-    }
-
-    function calculateTotal(storeName, elementId) {
-      const tx = db.transaction(storeName, "readonly");
-      const store = tx.objectStore(storeName);
-      const request = store.getAll();
-
-      request.onsuccess = function () {
-        const transactions = request.result;
-        const startDate = document.getElementById("start-date").value;
-        const endDate = document.getElementById("end-date").value;
-
-        let filteredTransactions = transactions;
-
-        if (startDate && endDate) {
-          filteredTransactions = transactions.filter((t) => {
-            const transDate = new Date(t.date);
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            return transDate >= start && transDate <= end;
-          });
-        }
-
-        const total = filteredTransactions.reduce(
-          (sum, t) => sum + t.amount,
-          0
-        );
-        document.getElementById(elementId).textContent =
-          total.toFixed(2) + " ₽";
-      };
-    }
-
-    function resetFilters() {
-      document.getElementById("start-date").valueAsDate = firstDayOfMonth;
-      document.getElementById("end-date").valueAsDate = lastDayOfMonth;
+    request.onsuccess = function () {
       loadTransactions();
-    }
+    };
+  }
+
+  function updateTransaction(storeName, transaction) {
+    const tx = db.transaction(storeName, "readwrite");
+    const store = tx.objectStore(storeName);
+    const request = store.put(transaction);
+
+    request.onsuccess = function () {
+      loadTransactions();
+    };
+  }
+
+  function deleteTransaction(storeName, id) {
+    const tx = db.transaction(storeName, "readwrite");
+    const store = tx.objectStore(storeName);
+    const request = store.delete(id);
+
+    request.onsuccess = function () {
+      loadTransactions();
+    };
   }
 });
