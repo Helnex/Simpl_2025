@@ -1,18 +1,18 @@
 <section class="container">
     <app-modal-window 
-    [isModalActive] = "appModalState" 
-    (modalClosed)="appModalState = false"
-    [modalType]="currentModalType"
+    [isModalActive] = "appModalState()" 
+    (modalClosed)="appModalState.set(false)"
+    [modalType]="currentModalType()"
     (transactionSubmitted)="onModalSubmit($event)"
-    [transactionData]="transactionData"
+    [transactionData]="transactionData()"
     >
     </app-modal-window>
         <h1>Финансовый трекер</h1>
         
         <div class="controls">
             <div class="buttons">
-                <button id="add-income" (click)="appModalState = true ; currentModalType = 'income' ; initNewTransaction('income')">+ Доход</button>
-                <button id="add-expense" (click)="appModalState = true ; currentModalType = 'expense' ; initNewTransaction('expense')">+ Расход</button>
+                <button id="add-income" (click)="appModalState.set(true) ; currentModalType.set('income') ; initNewTransaction('income')">+ Доход</button>
+                <button id="add-expense" (click)="appModalState.set(true) ; currentModalType.set('expense') ; initNewTransaction('expense')">+ Расход</button>
             </div>
             <div class="date-filter">
                 <label for="start-date">Период:</label>
@@ -35,7 +35,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let transaction of incomeTransactions">
+                        <tr *ngFor="let transaction of incomeTransactions()">
                             <td>{{ transaction.category }}</td>
                             <td>{{ transaction.amount.toFixed(2) }} ₽</td>
                             <td>{{ formatDate(transaction.date) }}</td>
@@ -60,7 +60,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let transaction of expenseTransactions">
+                        <tr *ngFor="let transaction of expenseTransactions()">
                             <td>{{ transaction.category }}</td>
                             <td>{{ (transaction.amount).toFixed(2) }} ₽</td>
                             <td>{{ formatDate(transaction.date) }}</td>
@@ -77,14 +77,14 @@
             <div class="chart-section">
                 <h2>Распределение доходов</h2>
                 <app-chart 
-                [transactions]="incomeTransactions" 
+                [transactions]="incomeTransactions()" 
                 [title]="'Доходы по категориям'">
                 </app-chart>
             </div>
             <div class="chart-section">
                 <h2>Распределение расходов</h2>
                 <app-chart 
-                [transactions]="expenseTransactions" 
+                [transactions]="expenseTransactions()" 
                 [title]="'Расходы по категориям'">
                 </app-chart>
             </div>

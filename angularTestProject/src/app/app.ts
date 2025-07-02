@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Database } from './database/database';
@@ -27,39 +27,33 @@ export class App implements OnInit {
   @ViewChild('startDateInput') startDateInput!: ElementRef<HTMLInputElement>;
   @ViewChild('endDateInput') endDateInput!: ElementRef<HTMLInputElement>;
 
-  protected appModalState = false;
-  protected currentModalType: StoreName = 'income';
-  protected incomeTransactions: ITransaction[] = [];
-  protected expenseTransactions: ITransaction[] = [];
+  appModalState = signal(false)
+  currentModalType = signal<StoreName>('income')
+  incomeTransactions = signal<ITransaction[]>([])
+  expenseTransactions = signal<ITransaction[]>([])
 
   constructor(private dbService: Database) {}
 
-  private _transactionData: ITransaction = {
-      category: '',
-      amount: 0,
-      date: new Date().toISOString().split('T')[0]
-  };
-  get transactionData(): ITransaction {
-    return this._transactionData;
-  }
-  set transactionData(value: Partial<ITransaction>) {
-    this._transactionData = { ...this._transactionData, ...value };
-  }
+  transactionData = signal<ITransaction>({
+  category: '',
+  amount: 0,
+  date: new Date().toISOString().split('T')[0]
+  });
 
   protected initNewTransaction(type: StoreName) {
-    this.transactionData = {
+    this.transactionData.set({
       category: '',
       amount: 0,
       date: new Date().toISOString().split('T')[0]
-    };
-    this.currentModalType = type;
-    this.appModalState = true;
+    });
+    this.currentModalType.set(type)
+    this.appModalState.set(true);
   }
 
   protected async loadTransactions() {
     try {
-       this.incomeTransactions = await this.loadStoreTransactions('income'),
-       this.expenseTransactions = await this.loadStoreTransactions('expense')
+       this.incomeTransactions.set(await this.loadStoreTransactions('income')) ,
+       this.expenseTransactions.set(await this.loadStoreTransactions('expense')) 
     } catch (error) {
       console.error('Error loading transactions:', error);
     }
@@ -104,22 +98,22 @@ export class App implements OnInit {
   async onModalSubmit(transaction: ITransaction) {
     try {
       if (transaction.id !== undefined) {
-        await this.dbService.updateTransaction(this.currentModalType, transaction);
+        await this.dbService.updateTransaction(this.currentModalType(), transaction);
       } else {
-        await this.dbService.addTransaction(this.currentModalType, transaction);
+        await this.dbService.addTransaction(this.currentModalType(), transaction);
       }
       await this.loadTransactions();
     } catch (error) {
       console.error('Error saving transaction:', error);
     } finally {
-      this.appModalState = false;
+      this.appModalState.set(false)
     }
   }
 
   protected editTransaction(transaction: ITransaction, storeName: StoreName) {
-    this.transactionData = { ...transaction };
-    this.currentModalType = storeName;
-    this.appModalState = true;
+    this.transactionData.set( { ...transaction } );
+    this.currentModalType.set(storeName)
+    this.appModalState.set(true)
   }
 
   async deleteTransaction(storeName: StoreName, id?: number) {
