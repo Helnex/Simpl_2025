@@ -63,11 +63,6 @@ document.addEventListener("DOMContentLoaded", function () {
     cancelBtn.addEventListener("click", closeModal);
 
     transactionForm.addEventListener("submit", handleFormSubmit);
-
-    window.addEventListener("resize", function () {
-      incomeChart.resize();
-      expenseChart.resize();
-    });
   }
 
   function openModal(type, title, transaction = null) {

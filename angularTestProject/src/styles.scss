@@ -1,0 +1,30 @@
+$blue: #3498db;
+$green: #2ecc71;
+$red: #e74c3c;
+$light-gray: #f5f5f5;
+$medium-gray: #e0e0e0;
+$dark-gray: #95a5a6;
+$text-color: #333;
+$white: #fff;
+
+* {
+    box-sizing: border-box;
+}
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: $text-color;
+    background-color: $light-gray;
+    padding: 20px;
+}
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: $blue;
+}
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}

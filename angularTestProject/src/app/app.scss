@@ -1,0 +1,97 @@
+@use "../styles.scss" as *;
+@use './components/modal-window/modal-window.scss' as *;
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: $white;
+    border-radius: 8px;
+    padding: 20px;
+}
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+#add-income {
+    background-color: $green;
+    color: white;
+    margin-right: 20px;
+}
+#add-expense {
+    background-color: $red;
+    color: white;
+}
+.date-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    label {
+        font-weight: 600;
+    }
+    input {
+        padding: 8px;
+        border: 1px solid $medium-gray;
+        border-radius: 4px;
+    }
+}
+#apply-filter {
+    background-color: $blue;
+    color: white;
+}
+.tables-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.table-section {
+    background-color: $white;
+    padding: 15px;
+    border-radius: 8px;
+
+    h2 {
+        margin-top: 0;
+        color: $blue;
+    }
+}
+.result-table{
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    border: 1px solid $medium-gray;
+
+    th, td {
+        padding: 12px 15px;
+        border: 1px solid $medium-gray;
+        background-color: $light-gray;
+        font-weight: 600;
+        border-bottom: 2px solid $dark-gray;
+        text-align: center;
+    }
+}   
+.action-btn {
+    padding: 6px 12px;
+    margin-right: 5px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.td-btn{
+    padding-left: 20px;
+}
+.edit-btn {
+    background-color: $blue;
+    color: white;
+    margin: 0;
+}
+.delete-btn {
+    background-color: $red;
+    color: white;
+    margin: 0;
+}
+
+
