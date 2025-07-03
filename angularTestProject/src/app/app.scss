@@ -1,4 +1,4 @@
-@use "../styles.scss" as *;
+@use "../variables.scss" as *;
 @use './components/modal-window/modal-window.scss' as *;
 
 .container {
@@ -13,6 +13,10 @@
     flex-direction: column;
     gap: 15px;
     margin-bottom: 20px;
+}
+::ng-deep .apply-filter {
+    background: $blue !important;
+    border: none !important;
 }
 #add-income {
     background-color: $green;
@@ -38,10 +42,6 @@
         border-radius: 4px;
     }
 }
-#apply-filter {
-    background-color: $blue;
-    color: white;
-}
 .tables-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -59,16 +59,10 @@
 }
 .result-table{
     width: 100%;
-    border-collapse: collapse;
     margin-top: 10px;
-    border: 1px solid $medium-gray;
-
     th, td {
         padding: 12px 15px;
-        border: 1px solid $medium-gray;
-        background-color: $light-gray;
         font-weight: 600;
-        border-bottom: 2px solid $dark-gray;
         text-align: center;
     }
 }   
@@ -83,15 +77,11 @@
 .td-btn{
     padding-left: 20px;
 }
-.edit-btn {
-    background-color: $blue;
-    color: white;
-    margin: 0;
+.action-buttons {
+    display: flex;
+    gap: 10px;
 }
-.delete-btn {
-    background-color: $red;
-    color: white;
-    margin: 0;
+::ng-deep.delete-btn {
+    background: $red !important;
+    border: none !important;
 }
-
-

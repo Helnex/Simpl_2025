@@ -1,6 +1,9 @@
-@use "../../../styles.scss" as *;
+@use "../../../variables.scss" as *;
 
-.modal {
+::ng-deep .dialog {
+    width: 600px;
+}
+::ng-deep .modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -14,7 +17,7 @@
 .modal-open {
     display: flex;
 }
-.modal-content {
+::ng-deep .modal-content {
     background-color: $white;
     padding: 25px;
     border-radius: 8px;
@@ -52,13 +55,9 @@
     gap: 10px;
     margin-top: 20px;
 }
-.save-btn {
-    background-color: $green;
-    color: white;
-}
-.cancel-btn {
-    background-color: $dark-gray;
-    color: white;
+::ng-deep .cancel-btn {
+    background: $red !important;
+    border: none !important;
 }
 .charts-container {
     display: grid;

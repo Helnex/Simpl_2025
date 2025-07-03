@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
 import * as echarts from 'echarts';
-import { ITransaction } from '../../services/constants';
+import { ITransaction } from '../../types/types';
 
 @Component({
   selector: 'app-chart',
@@ -9,30 +9,30 @@ import { ITransaction } from '../../services/constants';
   styleUrl: './charts.scss'
 })
 export class ChartComponent implements OnChanges {
-  @ViewChild('chartElement') chartElement!: ElementRef;
-  @Input() transactions: ITransaction[] = [];
-  @Input() title: string = '';
+  @ViewChild('chartElement') private chartElement!: ElementRef;
+  @Input() public transactions: ITransaction[] = [];
+  @Input() public title: string = '';
   
   private chart: echarts.ECharts | null = null;
 
-  ngOnChanges(changes: SimpleChanges) {
+  public ngOnChanges(changes: SimpleChanges): void {
     if (changes['transactions']) {
       this.updateChart();
     }
   }
 
-  ngAfterViewInit() {
+  public ngAfterViewInit(): void  {
     this.initChart();
   }
 
-  private initChart() {
+  private initChart(): void  {
     if (!this.chart && this.chartElement?.nativeElement) {
       this.chart = echarts.init(this.chartElement.nativeElement);
       this.updateChart();
     }
   }
 
-  private updateChart() {
+  private updateChart(): void  {
     if (!this.chart) return;
 
     const categories = this.groupTransactionsByCategory(this.transactions);

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { ITransaction, StoreName } from '../services/constants'
+import { ITransaction, StoreName } from '../types/types'
 
 @Injectable({ providedIn: 'root' })
-export class Database {
+export class DatabaseService {
   private db: IDBDatabase | null = null;
   private readonly DB_NAME = 'FinanceTrackerDB';
   private readonly DB_VERSION = 1;
@@ -99,9 +99,5 @@ export class Database {
       request.onsuccess = () => resolve();
       request.onerror = (event: Event) => reject((event.target as IDBRequest).error);
     });
-  }
-
-  isInitialized(): boolean {
-    return this.db !== null;
   }
 }

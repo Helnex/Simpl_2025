@@ -1,21 +1,39 @@
 import { Component, OnInit, ViewChild, ElementRef, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Database } from './database/database';
-import { StoreName } from './services/constants';
+import { DatabaseService } from './services/databaseService';
+import { StoreName } from './types/types';
 import { ChartComponent } from './components/charts/charts';
 import { ModalWindow } from './components/modal-window/modal-window';
-import { ITransaction } from './services/constants'
+import { ITransaction } from './types/types';
+import { ButtonModule } from 'primeng/button';
+import { TableModule } from 'primeng/table';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, ModalWindow, CommonModule, ChartComponent],
+  imports: [RouterOutlet, ModalWindow, CommonModule, ChartComponent, ButtonModule, TableModule],
   templateUrl: './app.html',
-  styleUrls: ['./app.scss']
+  styleUrls: ['./app.scss'],
 })
 export class App implements OnInit {
-  async ngOnInit() {
+  @ViewChild('startDateInput') protected startDateInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('endDateInput') protected endDateInput!: ElementRef<HTMLInputElement>;
+
+  public modalTitle = signal('')
+  public appModalState = signal(false);
+  public transactionData = signal<ITransaction>({
+  category: '',
+  amount: 0,
+  date: new Date().toISOString().split('T')[0]
+  });
+  protected currentModalType = signal<StoreName>('income');
+  protected incomeTransactions = signal<ITransaction[]>([]);
+  protected expenseTransactions = signal<ITransaction[]>([]);
+  
+  constructor(private dbService: DatabaseService) {};
+
+  async ngOnInit(): Promise<void>  {
       try {
         await this.dbService.initialize();
         await this.loadTransactions();
@@ -24,33 +42,20 @@ export class App implements OnInit {
       }
   }
 
-  @ViewChild('startDateInput') startDateInput!: ElementRef<HTMLInputElement>;
-  @ViewChild('endDateInput') endDateInput!: ElementRef<HTMLInputElement>;
-
-  appModalState = signal(false)
-  currentModalType = signal<StoreName>('income')
-  incomeTransactions = signal<ITransaction[]>([])
-  expenseTransactions = signal<ITransaction[]>([])
-
-  constructor(private dbService: Database) {}
-
-  transactionData = signal<ITransaction>({
-  category: '',
-  amount: 0,
-  date: new Date().toISOString().split('T')[0]
-  });
-
-  protected initNewTransaction(type: StoreName) {
+  protected initNewTransaction(type: StoreName): void {
     this.transactionData.set({
       category: '',
       amount: 0,
       date: new Date().toISOString().split('T')[0]
     });
-    this.currentModalType.set(type)
+    const typeName = type === 'income' ? 'доход' : 'расход';
+    this.modalTitle.set(`Добавить ${typeName}`);
+
+    this.currentModalType.set(type);
     this.appModalState.set(true);
   }
 
-  protected async loadTransactions() {
+  protected async loadTransactions(): Promise<void> {
     try {
        this.incomeTransactions.set(await this.loadStoreTransactions('income')) ,
        this.expenseTransactions.set(await this.loadStoreTransactions('expense')) 
@@ -95,7 +100,7 @@ export class App implements OnInit {
     }
   }
 
-  async onModalSubmit(transaction: ITransaction) {
+  async onModalSubmit(transaction: ITransaction): Promise<void>  {
     try {
       if (transaction.id !== undefined) {
         await this.dbService.updateTransaction(this.currentModalType(), transaction);
@@ -106,19 +111,22 @@ export class App implements OnInit {
     } catch (error) {
       console.error('Error saving transaction:', error);
     } finally {
-      this.appModalState.set(false)
+      this.appModalState.set(false);
     }
   }
 
-  protected editTransaction(transaction: ITransaction, storeName: StoreName) {
+  protected editTransaction(transaction: ITransaction, storeName: StoreName): void {
+    const typeName = storeName === 'income' ? 'доход' : 'расход';
+    this.modalTitle.set(`Изменить ${typeName}`);
     this.transactionData.set( { ...transaction } );
-    this.currentModalType.set(storeName)
-    this.appModalState.set(true)
+    this.currentModalType.set(storeName);
+    this.appModalState.set(true);
   }
 
-  async deleteTransaction(storeName: StoreName, id?: number) {
+  async deleteTransaction(storeName: StoreName, id?: number): Promise<void>  {
     if (!id || !confirm('Вы уверены, что хотите удалить эту запись?')) return;
-
+    console.log(storeName);
+    
     try {
       await this.dbService.deleteTransaction(storeName, id);
       await this.loadTransactions();
@@ -127,4 +135,9 @@ export class App implements OnInit {
     }
   }
 
+  protected clearDate (): void {
+    this.startDateInput.nativeElement.value = '';
+    this.endDateInput.nativeElement.value = '';
+    this.loadTransactions();
+  }
 }

@@ -2,7 +2,7 @@
     <app-modal-window 
     [isModalActive] = "appModalState()" 
     (modalClosed)="appModalState.set(false)"
-    [modalType]="currentModalType()"
+    [modalTitle]="modalTitle()"
     (transactionSubmitted)="onModalSubmit($event)"
     [transactionData]="transactionData()"
     >
@@ -11,66 +11,68 @@
         
         <div class="controls">
             <div class="buttons">
-                <button id="add-income" (click)="appModalState.set(true) ; currentModalType.set('income') ; initNewTransaction('income')">+ Доход</button>
-                <button id="add-expense" (click)="appModalState.set(true) ; currentModalType.set('expense') ; initNewTransaction('expense')">+ Расход</button>
-            </div>
+                <p-button id="add-income" (click)="appModalState.set(true) ; currentModalType.set('income') ; initNewTransaction('income')">+ Доход</p-button>
+                <p-button id="add-expense" (click)="appModalState.set(true) ; currentModalType.set('expense') ; initNewTransaction('expense')" styleClass="delete-btn">+ Расход</p-button>
+            </div>  
             <div class="date-filter">
                 <label for="start-date">Период:</label>
                 <input type="date" id="start-date" #startDateInput>
                 <span>—</span>
                 <input type="date" id="end-date" #endDateInput>
-                <button id="apply-filter" (click)="loadTransactions()">Применить</button>
+                <p-button id="apply-filter" (click)="loadTransactions()" styleClass="apply-filter">Применить</p-button>
+                <p-button id="apply-filter" styleClass="apply-filter" (click)="clearDate()">Очистить</p-button>
             </div>
         </div>
+
         <div class="tables-container">
             <div class="table-section">
                 <h2>Доходы</h2>
-                <table id="income-table" class="result-table" #incomeTable>
-                    <thead>
+                <p-table [value]="incomeTransactions()" styleClass="result-table">
+                    <ng-template pTemplate="header">
                         <tr class="table-head">
                             <th>Категория</th>
                             <th>Сумма</th>
                             <th>Дата</th>
                             <th>Действия</th>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let transaction of incomeTransactions()">
+                    </ng-template>
+                    <ng-template pTemplate="body" let-transaction>
+                        <tr>
                             <td>{{ transaction.category }}</td>
                             <td>{{ transaction.amount.toFixed(2) }} ₽</td>
                             <td>{{ formatDate(transaction.date) }}</td>
-                            <td>
-                                <button class="action-btn edit-btn" (click)="editTransaction(transaction, 'income')">Изменить</button>
-                                <button class="action-btn delete-btn" (click)="deleteTransaction('income', transaction.id)">Удалить</button>
+                            <td class="action-buttons">
+                                <p-button (click)="editTransaction(transaction, 'income')">Изменить</p-button>
+                                <p-button (click)="deleteTransaction('income', transaction.id)" styleClass="delete-btn">Удалить</p-button>
                             </td>
                         </tr>
-                    </tbody>
-                </table>
+                    </ng-template>
+                </p-table>
             </div>
             
             <div class="table-section">
                 <h2>Расходы</h2>
-                <table id="expense-table" class="result-table" #expenseTable>
-                    <thead>
+                <p-table [value]="expenseTransactions()" styleClass="result-table">
+                    <ng-template pTemplate="header">
                         <tr class="table-head">
                             <th>Категория</th>
                             <th>Сумма</th>
                             <th>Дата</th>
                             <th>Действия</th>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let transaction of expenseTransactions()">
+                    </ng-template>
+                    <ng-template pTemplate="body" let-transaction>
+                        <tr>
                             <td>{{ transaction.category }}</td>
-                            <td>{{ (transaction.amount).toFixed(2) }} ₽</td>
+                            <td>{{ transaction.amount.toFixed(2) }} ₽</td>
                             <td>{{ formatDate(transaction.date) }}</td>
-                            <td>
-                                <button class="action-btn edit-btn" (click)="editTransaction(transaction, 'expense')">Изменить</button>
-                                <button class="action-btn delete-btn" (click)="deleteTransaction('expense', transaction.id)">Удалить</button>
+                            <td class="action-buttons">
+                                <p-button (click)="editTransaction(transaction, 'expense')">Изменить</p-button>
+                                <p-button (click)="deleteTransaction('expense', transaction.id)" styleClass="delete-btn">Удалить</p-button>
                             </td>
                         </tr>
-                    </tbody>
-                </table>
+                    </ng-template>
+                </p-table>
             </div>
         </div>
         <div class="charts-container">
